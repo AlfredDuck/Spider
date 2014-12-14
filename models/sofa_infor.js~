@@ -1,0 +1,19 @@
+var mongodb = require('./mongodb');
+var Schema = mongodb.mongoose.Schema;
+var sofa_inforSchema = new Schema({
+city: String,             //城市名称
+user_id: String,          //沙发主的用户id
+username: String,         //沙发主的用户名
+infor: {
+  location: Array,          //沙发位置描述（省市区街 数组）
+  point: Array,             //沙发位置坐标
+  //deadline: Date,          //沙发截止日期
+  information: String,     //沙发介绍
+  necessary: Array         //必须条件
+},
+create_date: Date,         //沙发创建日期
+sofa_switch: Boolean,            //沙发开关
+image_url: Array,         //图片储存地址集合  
+});
+
+module.exports = mongodb.mongoose.model("sofa_infor", sofa_inforSchema);

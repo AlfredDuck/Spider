@@ -1,0 +1,9 @@
+var mongodb = require('./mongodb');
+var Schema = mongodb.mongoose.Schema;
+var imagesSchema = new Schema({
+user_id: String,    //沙发主用户id
+username: String,     //沙发主昵称
+url: Array          //图片地址集合
+});
+
+module.exports = mongodb.mongoose.model("images", imagesSchema);

@@ -1,0 +1,12 @@
+var mongodb = require('./mongodb');
+var Schema = mongodb.mongoose.Schema;
+var usersSchema = new Schema({
+username : String, //用户名
+password : String, //密码
+signup_date : Date, //注册时间
+mail : String, //邮箱
+head_pic : String, //一个地址
+user_id : String //此用户的唯一id，由注册时间（服务器时间）和一个6位随机数组成
+});
+
+module.exports = mongodb.mongoose.model("users", usersSchema);

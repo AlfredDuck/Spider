@@ -1,0 +1,8 @@
+var mongodb = require('./mongodb');
+var Schema = mongodb.mongoose.Schema;
+var locationsSchema = new Schema({
+point : Array,          //经纬坐标
+location_text : String  //文字描述的地址
+});
+
+module.exports = mongodb.mongoose.model("locations", locationsSchema);

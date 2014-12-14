@@ -1,0 +1,10 @@
+var mongodb = require('./mongodb');
+var Schema = mongodb.mongoose.Schema;
+var collectSchema = new Schema({
+user_id: String,             //发表留言的人
+collect_id: String,          //留言id
+collect_time: Date,          //留言时间
+collections: Array           //收藏数组
+});
+
+module.exports = mongodb.mongoose.model("collect", collectSchema);

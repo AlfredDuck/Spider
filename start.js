@@ -1,12 +1,9 @@
 /*
-流水生产步骤：
-0.start              每隔1小时执行一次流水作业
-1.crawler_url        抓取并储存帖子URL
-2.data_url           展示帖子URL
-3.crawler_content    抓取并储存帖子内容
-4.data_clear_url     删除帖子URL数据库（为下次抓取做准备）
-
-*/
+ * 流水步骤：
+ * 1.访问某一个小组的URL
+ * 2.找到相关URL，保存
+ * 3.找到小组的title、member数量，保存
+ */
 
 var addURLs          = require('./models/url.js');
 var addContent       = require('./models/content.js');

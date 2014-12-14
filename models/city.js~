@@ -1,9 +1,0 @@
-var mongodb = require('./mongodb');
-var Schema = mongodb.mongoose.Schema;
-var citiesSchema = new Schema({
-local_points : Array,    //所拥有的地点坐标
-location_text : String,  //文字描述的地址
-city: String             //城市名称
-});
-
-module.exports = mongodb.mongoose.model("cities", citiesSchema);

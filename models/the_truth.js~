@@ -1,8 +1,0 @@
-var mongodb = require('./mongodb');
-var Schema = mongodb.mongoose.Schema;
-var the_truthSchema = new Schema({
-sofa_id: String,            //沙发唯一id
-image: Array                //图片地址数组
-});
-
-module.exports = mongodb.mongoose.model("the_truth", the_truthSchema);

@@ -27,6 +27,7 @@ function main(){
 
 }
 
+
 function getWebSite(){
    var the_path = '/group/beijingzufang/';
 
@@ -73,26 +74,39 @@ function getWebSite(){
          // 如果担心被屏蔽，就打印一下网页源码
          //console.log(stringData);
 
-         // 取得title
-         var titleHTML = $('#group-info', stringData).html();
-         var title = $('h1', titleHTML).text();
-         title = title.replace(/\s/g, "");
-         console.log('=' + title);
-
-         // 取得relative_group
-         var relative_groupHTML = $('.bd', stringData).html();
-         console.log(relative_groupHTML);
-         var relative_group = $('.title', relative_groupHTML).text();
-         //console.log('=' + relative_group);
-
-         //var $html = cheerio.load(discussHTML);
-         //var tiezi_urls = $('.title', discussHTML).children();
+         // 从网页获取需要的内容
+         analysWebSite(stringData);
 
       });
    }).on('error', function(e){
       console.log("[check err all by my own]: " + e.message);
    });
 }
+
+
+function analysWebSite(stringData){
+   // 取得title
+   var titleHTML = $('#group-info', stringData).html();
+   var title = $('h1', titleHTML).text();
+   title = title.replace(/\s/g, "");
+   console.log('=' + title);
+
+   // 取得relative_group
+   var asideHTML = $('.aside', stringData).html();
+   var bdHTML = $('.bd', asideHTML).html();
+   var group_listHTML = $('.group-list', bdHTML).children();
+   console.log(group_listHTML);
+
+   var length = group_listHTML.length;
+   for (var i=0; i<=length; i++) {
+      var xxx = group_listHTML[i].children();
+      console.log(xxx);
+   }
+
+   return ;
+}
+
+
 
 /*
 var discussHTML = $('.olt', stringData).html();   //获取帖子列表（一页的）

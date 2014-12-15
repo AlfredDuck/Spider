@@ -5,68 +5,125 @@
  * 3.找到小组的title、member数量，保存
  */
 
-var addURLs          = require('./models/url.js');
-var addContent       = require('./models/content.js');
-var crawler_url      = require('./crawler/crawler_url.js');
+var http                = require('http');
+var $                   = require('cheerio');                     //cheerio用于解析DOM tree，类似于前端的jquery
+var addContent          = require('./models/content.js');
+var addQuickCheck       = require('./models/quick_check.js');
 
 
 main();
 
+function main(){
 
-function main(){   //使用setInterval做计时器以及循环,每隔10分钟调用一次，超过当前小时则停止
-   console.log('【开始爬取】');
-   var gp = showGroups();
-   crawler_url.main(gp);
+   //使用setInterval做计时器以及循环,每隔n分钟调用一次
+   console.log('[Spider Run]');
+   getWebSite();
+
    var timer = setInterval(function(){
-      console.log('【开始爬取】');
-      crawler_url.main(gp);
+      console.log('[Spider Run]');
+      getWebSite();
       //clearInterval(timer);
-   }, 1000*60*10);
+   }, 1000*10);
+
 }
 
-//定义一个json，包含各地租房小组的url
-function showGroups(){
-   var groups = {};
-   groups['北京'] = [
-   '北京',
-   '/group/beijingzufang/discussion?start=',  //北京租房
-   '/group/zhufang/discussion?start=',        //北京无中介租房
-   '/group/26926/discussion?start=',          //北京租房豆瓣
-   '/group/sweethome/discussion?start='       //北京租房密探
-   ];
-   groups['上海'] = [
-   '上海',
-   '/group/shanghaizufang/discussion?start=',   //上海租房
-   '/group/zufan/discussion?start=',      //上海租房@长宁租房/徐汇/静安租房
-   '/group/homeatshanghai/discussion?start=',   //和我住在一起
-   '/group/259227/discussion?start='           //上海租房（不良中介勿扰）
-   ];
-   groups['广州'] = [
-   '广州',
-   '/group/gz020/discussion?start=',    //广州租房（推荐指数★★★★★）
-   '/group/90742/discussion?start=',    //广州租房
-   '/group/banjia/discussion?start=',   //广州租房那些事
-   '/group/gz020/discussion?start='    //广州租房（推荐指数★★★★★）故意重复的
-   ];
-   
-   var ran = Math.random();
-   if ( ran <= 0.6 ){
-     return groups['北京'];
-   }
-   else if ( ran>0.6 && ran<=0.8 ){
-     return groups['上海'];
-   }
-   else if ( ran>0.8 && ran<1.0 ){
-     return groups['广州'];
-   }
-   else{
-     return groups['北京'];
-   }
+function getWebSite(){
+   var the_path = '/group/beijingzufang/';
+
+   console.log('抓取地址： ' + the_path);
+
+   var options={
+      host:'www.douban.com',
+      path:the_path,
+      //method:'get',     
+      headers:{  
+         'Content-Type':'application/x-www-form-urlencoded',  
+         'User-Agent':'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:18.0) Gecko/20100101 Firefox/18.0',
+         //'User-Agent':'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)',
+         'Referer':'http://www.douban.com/group/search?cat=1019&q=%E5%8C%97%E4%BA%AC%E7%A7%9F%E6%88%BF',
+         'Host':'www.douban.com',
+         'Connection':'keep-alive',
+         'Cache-Control':'max-age=0',
+         //'Accept-Language':'zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3',
+         //'Accept-Encoding':'gzip, deflate',
+      }
+   };
+
+   http.get(options, function(res) {
+     var size = 0;
+     var chunks = [];
+
+     res.on('data', function(chunk){
+         size += chunk.length;
+         chunks.push(chunk);
+         //
+         console.log('[wait for]: ' + options.path);
+     });
+
+     res.on('end', function(){
+         var data = Buffer.concat(chunks, size);
+         var stringData = data.toString();
+         if (stringData){
+            console.log('[get website success]' + options.path);
+         }
+         else {
+            console.log('[get website failed]' + options.path);
+         }
+
+         // 如果担心被屏蔽，就打印一下网页源码
+         //console.log(stringData);
+
+         // 取得title
+         var titleHTML = $('#group-info', stringData).html();
+         var title = $('h1', titleHTML).text();
+         title = title.replace(/\s/g, "");
+         console.log('=' + title);
+
+         // 取得relative_group
+         var relative_groupHTML = $('.bd', stringData).html();
+         console.log(relative_groupHTML);
+         var relative_group = $('.title', relative_groupHTML).text();
+         //console.log('=' + relative_group);
+
+         //var $html = cheerio.load(discussHTML);
+         //var tiezi_urls = $('.title', discussHTML).children();
+
+      });
+   }).on('error', function(e){
+      console.log("[check err all by my own]: " + e.message);
+   });
 }
 
+/*
+var discussHTML = $('.olt', stringData).html();   //获取帖子列表（一页的）
+//var $html = cheerio.load(discussHTML);
+var tiezi_urls = $('.title', discussHTML).children();
 
+for (var i=0; i<=tiezi_urls.length-1; i++){
+   var kk = tiezi_urls[i].attribs.href;    //获取帖子地址
+   URLs.push(kk);
+   console.log('url: ' + i);
+}
 
-
-
-
-
+//储存url数组到数据库
+if (URLs.length > 25*(maxNum-1)+12){   //防止多次重复写入,加12是为了防止有时候一页超过25个
+var uniqueURL = unique(URLs);    //数组去重
+var newURLs = new addURLs({
+   crawler_time: new Date(),             //爬取时间
+   length: URLs.length,                  //帖子数量
+   url: uniqueURL,                       //帖子数组
+   city: group[0]
+});
+//debug断点
+console.log('传递url到下一步');
+data_url.getURLs(newURLs);  //进入第2步骤
+*/
+/*
+newURLs.save(function(err, doc, num){
+   if (err) {   
+      console.log("Got error: ");
+   }
+   console.log('save success: ' + num);
+   data_url.getURLs();  //进入第2步骤
+});
+*/

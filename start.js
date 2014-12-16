@@ -89,20 +89,43 @@ function analysWebSite(stringData){
    var titleHTML = $('#group-info', stringData).html();
    var title = $('h1', titleHTML).text();
    title = title.replace(/\s/g, "");
-   console.log('=' + title);
+   console.log('[title]: ' + title);
 
    // 取得relative_group
    var asideHTML = $('.aside', stringData).html();
    var bdHTML = $('.bd', asideHTML).html();
    var group_listHTML = $('.group-list', bdHTML).children();
-   console.log(group_listHTML);
+   //console.log(group_listHTML);
 
    var length = group_listHTML.length;
    for (var i=0; i<=length; i++) {
-      var xxx = group_listHTML[i].children();
-      console.log(xxx);
+      var url = $('.title a', group_listHTML[i]).attr('href');
+      console.log(url);
    }
 
+   // 取得小组创建时间
+   var xx = $('.group-board p', stringData).text();
+   var start = xx.indexOf('创建于');
+   console.log(start);
+   if (start>=0) {
+      var createTime = xx.substring(start + 3, start + 13);
+      console.log(createTime);
+   }
+
+   // 取得小组成员人数
+   var memberString = $('div[class=mod side-nav]', stringData).html();
+   console.log('[member]: ' + memberString);
+
+   // 组合json
+   var json = {
+      douban_id: String,                       // 豆瓣id，从URL中提取出的唯一标示符
+      title: String,                           // 小组名称
+      create_time: String,                     // 小组创建时间
+      url: String,                             // 网页地址
+      relative_groups: Array,                  // 豆瓣提供的8个相关小组
+      member: Number
+   };
+   
    return ;
 }
 

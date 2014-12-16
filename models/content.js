@@ -10,7 +10,8 @@ var groupSchema = new Schema({
    title: String,                           // 小组名称
    create_time: String,                     // 小组创建时间
    url: String,                             // 网页地址
-   relative_groups: Array                   // 豆瓣提供的8个相关小组
+   relative_groups: Array,                  // 豆瓣提供的8个相关小组
+   member: Number                           // 小组人数（抓取时间点）
 });
 
 module.exports = mongodb.mongoose.model("group", groupSchema);

@@ -74,8 +74,29 @@ function getWebSite(){
          // 如果担心被屏蔽，就打印一下网页源码
          //console.log(stringData);
 
-         // 从网页获取需要的内容
-         analysWebSite(stringData);
+         // 从网页获取需要的内容（抓取内容）
+         //console.log(analysWebSite(stringData, the_path));
+
+         // 从网页获取relative_groups（广度遍历）
+         var groupURLs = spiderWholeDoubanGroup(stringData);
+         var length = groupURLs.length;
+         console.log(groupURLs);
+         
+         for (var i=0; i<length; i++) {
+            addQuickCheck.findOne({url: groupURLs[i]}, function(err, doc){
+               if (err) {console.log('[err]: ' + err);}
+               if (!doc) {
+                  var newURL = new addQuickCheck({
+                     url: groupURLs[i]
+                  });
+                  newURL.save(function(err, doc, num){
+                     if (err) {console.log("Got error: " + err);}
+                     console.log('[save url]: ' + doc);
+                  });
+               }
+            });
+         }
+         
 
       });
    }).on('error', function(e){
@@ -84,7 +105,27 @@ function getWebSite(){
 }
 
 
-function analysWebSite(stringData){
+function spiderWholeDoubanGroup(stringData) {
+    // 取得relative_group
+    var asideHTML = $('.aside', stringData).html();
+    var bdHTML = $('.bd', asideHTML).html();
+    var group_listHTML = $('.group-list', bdHTML).children();
+    //console.log(group_listHTML);
+
+    var length = group_listHTML.length;
+    var urlArray = [];
+    for (var i=0; i<=length; i++) {
+        var url = $('.title a', group_listHTML[i]).attr('href');
+        if (url) {
+             console.log('[url]: ' + url);
+             urlArray.push(url);
+        }
+    }
+    return urlArray;
+}
+
+
+function analysWebSite(stringData, path){
    // 取得title
    var titleHTML = $('#group-info', stringData).html();
    var title = $('h1', titleHTML).text();
@@ -98,35 +139,46 @@ function analysWebSite(stringData){
    //console.log(group_listHTML);
 
    var length = group_listHTML.length;
+   var urlArray = [];
    for (var i=0; i<=length; i++) {
       var url = $('.title a', group_listHTML[i]).attr('href');
-      console.log(url);
+      if (url) {
+         console.log('[url]: ' + url);
+         urlArray.push(url);
+      }
    }
 
    // 取得小组创建时间
    var xx = $('.group-board p', stringData).text();
    var start = xx.indexOf('创建于');
    console.log(start);
-   if (start>=0) {
+   if (start >= 0) {
       var createTime = xx.substring(start + 3, start + 13);
-      console.log(createTime);
+      console.log('[createTime]: ' + createTime);
    }
 
    // 取得小组成员人数
-   var memberString = $('div[class=mod side-nav]', stringData).html();
-   console.log('[member]: ' + memberString);
+   var memberString = $('.aside', stringData).children().toString();
+   var member = $('p a', memberString).text();
+   var memberValue = member.replace(/[^0-9]/ig,"");
+   memberValue = parseInt(memberValue);
+   console.log('[member]: ' + memberValue);
+
+   // 解析url和douban_id
+   var current_url = 'http://www.douban.com' + path;
+   var douban_id = path.substring(7);
 
    // 组合json
    var json = {
-      douban_id: String,                       // 豆瓣id，从URL中提取出的唯一标示符
-      title: String,                           // 小组名称
-      create_time: String,                     // 小组创建时间
-      url: String,                             // 网页地址
-      relative_groups: Array,                  // 豆瓣提供的8个相关小组
-      member: Number
+      douban_id: douban_id,                       // 豆瓣id，从URL中提取出的唯一标示符
+      title: title,                           // 小组名称
+      create_time: createTime,                     // 小组创建时间
+      url: current_url,                             // 网页地址
+      relative_groups: urlArray,                  // 豆瓣提供的8个相关小组
+      member: memberValue
    };
    
-   return ;
+   return json;
 }
 
 

@@ -1,4 +1,4 @@
-/*
+
  * 流水步骤：
  * 1.访问某一个小组的URL
  * 2.找到相关URL，保存
@@ -81,7 +81,7 @@ function getWebSite(){
          var groupURLs = spiderWholeDoubanGroup(stringData);
          var length = groupURLs.length;
          console.log(groupURLs);
-         
+         /*
          for (var i=0; i<length; i++) {
             addQuickCheck.findOne({url: groupURLs[i]}, function(err, doc){
                if (err) {console.log('[err]: ' + err);}
@@ -96,6 +96,40 @@ function getWebSite(){
                }
             });
          }
+         */
+         addQuickCheck.find(function(err, docs){
+            console.log('start store-------------');
+            console.log(docs);
+            var hash = {};
+
+            // for (var i=0; i<length; i++) {
+            //    var newURL = new addQuickCheck({
+            //          url: groupURLs[i]
+            //    });
+            //    newURL.save(function(err, doc, num){
+            //       if (err) {console.log("Got error: " + err);}
+            //       console.log('[save url]: ' + doc);
+            //    });
+            // }
+            
+            for (var i=0; i<length; i++) {
+               var key = typeof(groupURLs[i]) + groupURLs[i];
+               hash[key] = 110;
+            }
+            for (var j=0; j<=docs.length-1; j++) {
+               var testKey = typeof(docs[j]) + docs[j];
+               if (hash[testKey] != 110) {
+                  var newURL = new addQuickCheck({
+                     url: groupURLs[i]
+                  });
+                  newURL.save(function(err, doc, num){
+                     if (err) {console.log("Got error: " + err);}
+                     console.log('[save url]: ' + doc);
+                  });
+               }
+            }
+            
+         });
          
 
       });
@@ -215,4 +249,3 @@ newURLs.save(function(err, doc, num){
    console.log('save success: ' + num);
    data_url.getURLs();  //进入第2步骤
 });
-*/

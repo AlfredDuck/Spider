@@ -6,7 +6,7 @@
 var mongodb = require('./mongodb');
 var Schema = mongodb.mongoose.Schema;
 var quickSchema = new Schema({
-   url: String                        // 
+   url: String                        // 小组地址
 });
 
 module.exports = mongodb.mongoose.model("quick", quickSchema);

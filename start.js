@@ -1,4 +1,4 @@
-
+/*
  * 流水步骤：
  * 1.访问某一个小组的URL
  * 2.找到相关URL，保存
@@ -240,8 +240,8 @@ var newURLs = new addURLs({
 //debug断点
 console.log('传递url到下一步');
 data_url.getURLs(newURLs);  //进入第2步骤
-*/
-/*
+
+
 newURLs.save(function(err, doc, num){
    if (err) {   
       console.log("Got error: ");
@@ -249,3 +249,4 @@ newURLs.save(function(err, doc, num){
    console.log('save success: ' + num);
    data_url.getURLs();  //进入第2步骤
 });
+*/

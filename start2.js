@@ -1,47 +1,46 @@
+
 /*
  * 流水步骤：
  * 1.访问某一个小组的URL
- * 2.找到相关URL，保存
+ * 2.找到小组的title、member数量，保存
  */
 
 var http                = require('http');
-var $                   = require('cheerio');         //cheerio用于解析DOM tree，类似于前端的jquery
+var $                   = require('cheerio');                //cheerio用于解析DOM tree
 var addContent          = require('./models/content.js');
 var addQuickCheck       = require('./models/quick_check.js');
 
-
 main();
-var page = 1756;
+var breakPoint = 0;
 
 function main(){
 
    //使用setInterval做计时器以及循环,每隔n分钟调用一次
    console.log('[Spider Run]');
-   checkLocal(page);
-   //getWebSite();
-   page ++;
+   checkLocal(breakPoint);
+   breakPoint ++;
 
    var timer = setInterval(function(){
       console.log('[Spider Run]');
-      checkLocal(page);
-      //getWebSite();
-      page ++;
+      checkLocal(breakPoint);
+      breakPoint ++;
       //clearInterval(timer);
-   }, 1000*6.476);
+   }, 1000*8.432);
 
 }
 
 /*
  * 查询本地，找到可访问的url
  */
-function checkLocal(page){
+function checkLocal(breakPoint){
 
    var option = {
       sort:[['_id', 1]],
-      skip: page
+      limit:1,
+      skip: breakPoint
    };
    addQuickCheck.findOne(null, null, option, function(err, doc){
-      console.log('check mongodb');
+      console.log('[checking mongodb]');
       if (err) {console.log('get err: ' + err);}
       if (doc.url) {
          getWebSite(doc.url);
@@ -55,9 +54,7 @@ function checkLocal(page){
    });
 }
 
-
 function getWebSite(url){
-
    var the_path = url;
    //var the_path = 'http://www.douban.com/group/beijingzufang/';
    console.log('抓取地址：' + the_path);
@@ -70,7 +67,7 @@ function getWebSite(url){
          'Content-Type':'application/x-www-form-urlencoded',  
          'User-Agent':'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:18.0) Gecko/20100101 Firefox/18.0',
          //'User-Agent':'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)',
-         'Referer':'http://www.douban.com/group/search?cat=1019&q=%E5%8C%97%E4%BA%AC%E7%A7%9F%E6%88%BF',
+         'Referer':'http://www.douban.com/',
          'Host':'www.douban.com',
          'Connection':'keep-alive',
          'Cache-Control':'max-age=0',
@@ -104,83 +101,23 @@ function getWebSite(url){
          //console.log(stringData);
 
          // 从网页获取需要的内容（抓取内容）
-         //console.log(analysWebSite(stringData, the_path));
+         var the_json = analysWebSite(stringData, the_path);
+         console.log(the_json);
 
-         // 从网页获取relative_groups（广度遍历）
-         var groupURLs = wideSpiderWholeDoubanGroup(stringData);
-         console.log(groupURLs);
-         
-         addQuickCheck.find(function(err, docs){
-            console.log('start store-------------to quick_check');
-            var hash = {};
-
-            // for (var i=0; i<groupURLs.length; i++) {
-            //    var newURL = new addQuickCheck({
-            //          url: groupURLs[i]
-            //    });
-            //    newURL.save(function(err, doc, num){
-            //       if (err) {console.log("Got error: " + err);}
-            //       console.log('[save url]: ' + doc);
-            //    });
-            // }
-            
-            // 将新抓取的URL存为哈希
-            for (var i=0; i<=groupURLs.length-1; i++) {
-               var key = typeof(groupURLs[i]) + groupURLs[i];
-               hash[key] = 110;
-            }
-
-            var copyURLs = groupURLs;
-            console.log('[copy 1]' + copyURLs);
-            for (var j=0; j<=docs.length-1; j++) {
-               for (var i=0; i<=groupURLs.length-1; i++) {
-                  if (docs[j].url == groupURLs[i]) {
-                     copyURLs.splice(i,1);
-                  }
-               }
-            }
-            console.log('[copy 2]' + copyURLs);
-            console.log('--------page--------' + page);
-
-            for (var i=0; i<copyURLs.length; i++){
-               console.log('store????');
-               var newURL = new addQuickCheck({
-                  url: copyURLs[i]
-               });
-               newURL.save(function(err, doc, num){
-                  if (err) {console.log("Got error: " + err);}
-                  console.log('[save url]: ' + doc);
-                  console.log('---------page--------' + page);
-               });
-            }
-            
+         // 储存到mongodb
+         var newContent = new addContent(the_json);
+         newContent.save(function(err, doc, num){
+            if (err) {console.log('err' + err);}
+            console.log('saved succssess');
+            console.log(doc);
+            console.log('--------breakPoint--------' + breakPoint);
          });
          
+     });
 
-      });
    }).on('error', function(e){
       console.log("[check err all by my own]: " + e.message);
    });
-}
-
-
-function wideSpiderWholeDoubanGroup(stringData) {
-    // 取得relative_group
-    var asideHTML = $('.aside', stringData).html();
-    var bdHTML = $('.bd', asideHTML).html();
-    var group_listHTML = $('.group-list', bdHTML).children();
-    //console.log(group_listHTML);
-
-    var length = group_listHTML.length;
-    var urlArray = [];
-    for (var i=0; i<=length; i++) {
-        var url = $('.title a', group_listHTML[i]).attr('href');
-        if (url) {
-             console.log('[url]: ' + url);
-             urlArray.push(url);
-        }
-    }
-    return urlArray;
 }
 
 
@@ -241,37 +178,3 @@ function analysWebSite(stringData, path){
 }
 
 
-
-/*
-var discussHTML = $('.olt', stringData).html();   //获取帖子列表（一页的）
-//var $html = cheerio.load(discussHTML);
-var tiezi_urls = $('.title', discussHTML).children();
-
-for (var i=0; i<=tiezi_urls.length-1; i++){
-   var kk = tiezi_urls[i].attribs.href;    //获取帖子地址
-   URLs.push(kk);
-   console.log('url: ' + i);
-}
-
-//储存url数组到数据库
-if (URLs.length > 25*(maxNum-1)+12){   //防止多次重复写入,加12是为了防止有时候一页超过25个
-var uniqueURL = unique(URLs);    //数组去重
-var newURLs = new addURLs({
-   crawler_time: new Date(),             //爬取时间
-   length: URLs.length,                  //帖子数量
-   url: uniqueURL,                       //帖子数组
-   city: group[0]
-});
-//debug断点
-console.log('传递url到下一步');
-data_url.getURLs(newURLs);  //进入第2步骤
-
-
-newURLs.save(function(err, doc, num){
-   if (err) {   
-      console.log("Got error: ");
-   }
-   console.log('save success: ' + num);
-   data_url.getURLs();  //进入第2步骤
-});
-*/
